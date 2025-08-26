@@ -23,7 +23,7 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     #print("containers:", getattr(Player, "containers", None))
     player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
-    asteroid_field = AsteroidField()
+    AsteroidField()
 
     while True:
 
@@ -42,6 +42,13 @@ def main():
             if player.collision(asteroid):
                 print("Game over!")
                 return
+            
+            for shot in shots:
+                if shot.collision(asteroid):
+                    shot.kill()
+                    asteroid.split()
+        
+
    
         pygame.display.flip()
 
