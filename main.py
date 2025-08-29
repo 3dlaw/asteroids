@@ -68,7 +68,7 @@ def main():
             for shot in shots:
                 if shot.collision(asteroid):
                     shot.kill()
-                    print(int(asteroid.velocity.length()))
+                    #print(int(asteroid.velocity.length()))
                     score += asteroid.thick + int(asteroid.velocity.length())
                     asteroid.split()
         

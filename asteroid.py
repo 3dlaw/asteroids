@@ -38,11 +38,41 @@ class Asteroid(CircleShape):
     def __init__(self, x, y, radius):
         super().__init__(x, y, radius)
         self.thick = 2
+        self._local_points = self._make_polygon()
+        self.angle = random.uniform(0,360)
+        self.spin = random.uniform(-60, 60)
+
+    def _make_polygon(self, min_sides = 6, max_sides = 12, angle_jitter = 0.35, radial_jitter = 0.30):
+        sides = random.randint(min_sides, max_sides)
+        step = 360/sides
+        max_angle_jitter = step * angle_jitter
+        points = []
+        angles = []
+
+        for i in range(sides):
+            a = i * step + random.uniform(-max_angle_jitter, max_angle_jitter)
+            angles.append(a)
+        angles.sort()
+
+        for a in angles:
+            r = self.radius * (1 + random.uniform(-radial_jitter, radial_jitter))
+            r = max(0.35*self.radius,r)
+            v = pygame.Vector2(0, -r).rotate(a)
+            points.append(v)
+
+        return points
+
+    def asteroid_shape(self):
+        points = []
+        for p in self._local_points:
+            points.append(self.position + p)
+        return points
 
     def draw(self, screen):
         # Use velocity-based coloring
         velocity_color = get_velocity_color(self.velocity)
-        pygame.draw.circle(screen, velocity_color, self.position, self.radius, self.thick)
+        #pygame.draw.circle(screen, velocity_color, self.position, self.radius, self.thick)
+        pygame.draw.polygon(screen, velocity_color, self.asteroid_shape(), self.thick)
 
     def update(self, dt):
         self.position += self.velocity * dt
@@ -59,16 +89,16 @@ class Asteroid(CircleShape):
             if new_radius > ASTEROID_MIN_RADIUS:
                 # Medium asteroids: medium speed (1.2x to 1.8x)
                 asteroid1 = Asteroid(self.position.x, self.position.y, new_radius)
-                asteroid1.thick *= 5
+                #asteroid1.thick *= 5
                 asteroid1.velocity = velocity1 * random.uniform(1.2, 1.8)
                 asteroid2 = Asteroid(self.position.x, self.position.y, new_radius)
-                asteroid2.thick *= 5
+                #asteroid2.thick *= 5
                 asteroid2.velocity = velocity2 * random.uniform(1.2, 1.8)
             else:
                 # Smallest asteroids: fastest (2.0x to 2.5x)
                 asteroid1 = Asteroid(self.position.x, self.position.y, new_radius)
-                asteroid1.thick *= 5
+                #asteroid1.thick *= 5
                 asteroid1.velocity = velocity1 * random.uniform(2.0, 2.5)
                 asteroid2 = Asteroid(self.position.x, self.position.y, new_radius)
-                asteroid2.thick *= 5
+                #asteroid2.thick *= 5
                 asteroid2.velocity = velocity2 * random.uniform(2.0, 2.5)
