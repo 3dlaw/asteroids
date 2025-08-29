@@ -1,12 +1,13 @@
 import pygame
 from constants import *
 from player import Player, Shot
-from asteroid import Asteroid
+from asteroid import Asteroid, get_velocity_color
 from asteroidfield import AsteroidField
 from menus import *
+from stats import GameStats
 
 def main():
-
+    game_stats = GameStats()
     pygame.init()
     clock = pygame.time.Clock()
     dt = 0
@@ -40,6 +41,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    game_stats.increment_stat("shots_fired")
             
         screen.fill((0,0,0))
         draw_hud(screen, font, score)
@@ -64,11 +68,33 @@ def main():
                     for g in (updateable, drawable, asteroids, shots):
                         g.empty()
                     begin_wait = True
-            
+                elif action == 'stats':
+                    for g in (updateable, drawable, asteroids, shots):
+                        g.empty()
+                    stat_action = draw_stats_menu(screen, font, big_font, game_stats)
+                    if stat_action == 'quit':
+                        return
+                    if stat_action == 'main_menu':
+                        for g in (updateable, drawable, asteroids, shots):
+                            g.empty()
+                        begin_wait = True
+           
             for shot in shots:
                 if shot.collision(asteroid):
                     shot.kill()
-                    #print(int(asteroid.velocity.length()))
+                    asteroid_color = get_velocity_color(asteroid.velocity)
+                    if asteroid_color == (255, 255, 255):
+                        game_stats.increment_stat("White_asteroids_destroyed")
+                    elif asteroid_color == (0, 0, 255):
+                        game_stats.increment_stat("Blue_asteroids_destroyed")
+                    elif asteroid_color == (0, 255, 0):
+                        game_stats.increment_stat("Green_asteroids_destoryed")
+                    elif asteroid_color == (255, 255, 0):
+                        game_stats.increment_stat("Yellow_asteroids_destoryed")
+                    elif asteroid_color == (255, 128, 0):
+                        game_stats.increment_stat("Orange_asteroids_destroyed")
+                    elif asteroid_color == (255, 0, 0):
+                        game_stats.increment_stat("Red_asteroids_destroyed")
                     score += asteroid.thick + int(asteroid.velocity.length())
                     asteroid.split()
         
