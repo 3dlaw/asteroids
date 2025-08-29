@@ -168,6 +168,11 @@ def draw_stats_menu(screen, font, big_font, game_stats):
 
         y_offset += line_spacing
 
+    # Retry option
+    restart = font.render("Press R to Retry", True, "green")
+    restart_rect = restart.get_rect(center=(SCREEN_WIDTH//2, 560))
+    screen.blit(restart, restart_rect)
+    
     # Main menu option
     back_text = font.render("Press ESC to go to Main Menu", True, "green")
     back_rect = back_text.get_rect(center=(SCREEN_WIDTH//2, 680))
@@ -190,3 +195,5 @@ def draw_stats_menu(screen, font, big_font, game_stats):
                     return 'quit'
                 if event.key == pygame.K_ESCAPE:
                     return 'main_menu'
+                if event.key == pygame.K_r:
+                    return 'retry'

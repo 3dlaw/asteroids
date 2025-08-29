@@ -74,10 +74,16 @@ def main():
                     stat_action = draw_stats_menu(screen, font, big_font, game_stats)
                     if stat_action == 'quit':
                         return
-                    if stat_action == 'main_menu':
+                    elif stat_action == 'main_menu':
                         for g in (updateable, drawable, asteroids, shots):
                             g.empty()
                         begin_wait = True
+                    elif stat_action == 'retry':
+                        score = 0
+                        for g in (updateable, drawable, asteroids, shots):
+                            g.empty()
+                        player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+                        AsteroidField()
            
             for shot in shots:
                 if shot.collision(asteroid):
