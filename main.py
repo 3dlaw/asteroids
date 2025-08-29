@@ -20,14 +20,14 @@ def main():
     Player.containers = (updateable, drawable)
     AsteroidField.containers = (updateable)
     Shot.containers = (shots, updateable, drawable)
+    
     font = pygame.font.Font(None, 36)
     big_font = pygame.font.Font(None, 100)
-
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     begin_wait = True
+    
     while True:
 
-        
         while begin_wait:
             screen.fill("black")
             start_game = big_font.render(f"Press ENTER to Start", True, "green")
@@ -46,8 +46,6 @@ def main():
                         player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
                         AsteroidField()
                         begin_wait = False
-
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -99,25 +97,16 @@ def main():
                                 wait = False
                         if event.type == pygame.QUIT:
                             return
-                    #clock.tick(60)
             
             for shot in shots:
                 if shot.collision(asteroid):
                     shot.kill()
-                    #print(asteroid.velocity.length())
-                    #if asteroid.radius == ASTEROID_MAX_RADIUS:
-                    #    score += 20
                     score += asteroid.thick + int(asteroid.velocity.length())
-                    #elif ASTEROID_MIN_RADIUS < asteroid.radius < ASTEROID_MAX_RADIUS:
-                    #    score += 50
-                    #elif asteroid.radius <= ASTEROID_MIN_RADIUS:
-                    #    score += 100
                     asteroid.split()
         
         pygame.display.flip()
 
         dt = clock.tick(60)/1000
-        
 
 if __name__ == "__main__":
     main()
