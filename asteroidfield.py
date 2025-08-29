@@ -34,6 +34,7 @@ class AsteroidField(pygame.sprite.Sprite):
 
     def spawn(self, radius, position, velocity):
         asteroid = Asteroid(position.x, position.y, radius)
+        #print(f"Asteroid Spawn: ({asteroid.position.x}, {asteroid.position.y})")
         
         # Size-based velocity scaling: smaller = faster, larger = slower
         if asteroid.radius <= ASTEROID_MIN_RADIUS:

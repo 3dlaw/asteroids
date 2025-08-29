@@ -46,6 +46,16 @@ class Player(CircleShape):
         
         self.timer -= dt
 
+        #wrap around screen
+        if self.position.x> SCREEN_WIDTH:
+            self.position.x = 0 
+        elif self.position.x < 0:
+            self.position.x = SCREEN_WIDTH
+        elif self.position.y > SCREEN_HEIGHT:
+            self.position.y = 0
+        elif self.position.y < 0:
+            self.position.y = SCREEN_HEIGHT
+
     def shoot(self):
         shot = Shot(self.position.x, self.position.y, SHOT_RADIUS)
         shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED

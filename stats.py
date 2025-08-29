@@ -1,10 +1,11 @@
+
 class GameStats:
     def __init__(self):
         self.stats = {
             "White_asteroids_destroyed": 0,
             "Blue_asteroids_destroyed": 0,
-            "Green_asteroids_destoryed": 0,
-            "Yellow_asteroids_destoryed": 0,
+            "Green_asteroids_destroyed": 0,
+            "Yellow_asteroids_destroyed": 0,
             "Orange_asteroids_destroyed": 0,
             "Red_asteroids_destroyed": 0,
             "shots_fired": 0,

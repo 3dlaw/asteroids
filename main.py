@@ -85,17 +85,23 @@ def main():
                     asteroid_color = get_velocity_color(asteroid.velocity)
                     if asteroid_color == (255, 255, 255):
                         game_stats.increment_stat("White_asteroids_destroyed")
+                        score += 50
                     elif asteroid_color == (0, 0, 255):
                         game_stats.increment_stat("Blue_asteroids_destroyed")
+                        score += 100
                     elif asteroid_color == (0, 255, 0):
-                        game_stats.increment_stat("Green_asteroids_destoryed")
+                        game_stats.increment_stat("Green_asteroids_destroyed")
+                        score += 200
                     elif asteroid_color == (255, 255, 0):
-                        game_stats.increment_stat("Yellow_asteroids_destoryed")
+                        game_stats.increment_stat("Yellow_asteroids_destroyed")
+                        score += 250
                     elif asteroid_color == (255, 128, 0):
                         game_stats.increment_stat("Orange_asteroids_destroyed")
+                        score += 350
                     elif asteroid_color == (255, 0, 0):
                         game_stats.increment_stat("Red_asteroids_destroyed")
-                    score += asteroid.thick + int(asteroid.velocity.length())
+                        score += 500
+                    #score += asteroid.thick + int(asteroid.velocity.length())
                     asteroid.split()
         
         pygame.display.flip()
