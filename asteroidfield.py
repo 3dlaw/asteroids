@@ -1,6 +1,6 @@
 import pygame
 import random
-from asteroid import Asteroid
+from asteroid import Asteroid, get_velocity_color
 from constants import *
 
 
@@ -34,14 +34,17 @@ class AsteroidField(pygame.sprite.Sprite):
 
     def spawn(self, radius, position, velocity):
         asteroid = Asteroid(position.x, position.y, radius)
+        
+        # Size-based velocity scaling: smaller = faster, larger = slower
         if asteroid.radius <= ASTEROID_MIN_RADIUS:
-            asteroid.color = "red"
-            asteroid.velocity = velocity * 2.0
+            # Smallest asteroids: fastest (2.0x to 2.5x)
+            asteroid.velocity = velocity * random.uniform(2.0, 2.5)
         elif ASTEROID_MIN_RADIUS < asteroid.radius < ASTEROID_MAX_RADIUS:
-            asteroid.color = "blue"
-            asteroid.velocity = velocity * 1.5
+            # Medium asteroids: medium speed (1.2x to 1.8x)
+            asteroid.velocity = velocity * random.uniform(1.2, 1.8)
         else:
-            asteroid.velocity = velocity
+            # Largest asteroids: slowest (0.6x to 1.0x)
+            asteroid.velocity = velocity * random.uniform(0.6, 1.0)
 
     def update(self, dt):
         self.spawn_timer += dt

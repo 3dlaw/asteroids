@@ -3,16 +3,46 @@ from circleshape import CircleShape
 from constants import *
 import random
 
+def get_velocity_color(velocity):
+    """
+    Get a color based on velocity.length(), creating a gradient from red (fastest) to blue (slowest).
+    
+    Args:
+        velocity: Pygame Vector2 representing velocity
+    
+    Returns:
+        tuple: RGB color tuple (r, g, b)
+    """
+    # Handle edge cases
+    if velocity is None or velocity.length() == 0:
+        return (255, 255, 255)  # White for stationary objects
+    
+    speed = velocity.length()
+    
+    # Color mapping based on actual velocity ranges (25-414)
+    if speed > 350:
+        return (255, 0, 0)      # Red for very fast (>350)
+    elif speed > 280:
+        return (255, 128, 0)    # Orange for fast (280-350)
+    elif speed > 200:
+        return (255, 255, 0)    # Yellow for medium-fast (200-280)
+    elif speed > 120:
+        return (0, 255, 0)      # Green for medium (120-200)
+    elif speed > 60:
+        return (0, 0, 255)      # Blue for slow (60-120)
+    else:
+        return (255, 255, 255)    # White for very slow (25-60)
+
 class Asteroid(CircleShape):
     
     def __init__(self, x, y, radius):
         super().__init__(x, y, radius)
-        self.color = "white"
         self.thick = 2
 
     def draw(self, screen):
-        
-        pygame.draw.circle(screen, self.color, self.position, self.radius, self.thick)
+        # Use velocity-based coloring
+        velocity_color = get_velocity_color(self.velocity)
+        pygame.draw.circle(screen, velocity_color, self.position, self.radius, self.thick)
 
     def update(self, dt):
         self.position += self.velocity * dt
@@ -27,20 +57,18 @@ class Asteroid(CircleShape):
             velocity2 = self.velocity.rotate(-rand_angle)
             new_radius = self.radius - ASTEROID_MIN_RADIUS
             if new_radius > ASTEROID_MIN_RADIUS:
+                # Medium asteroids: medium speed (1.2x to 1.8x)
                 asteroid1 = Asteroid(self.position.x, self.position.y, new_radius)
-                asteroid1.color = "blue"
                 asteroid1.thick *= 5
+                asteroid1.velocity = velocity1 * random.uniform(1.2, 1.8)
                 asteroid2 = Asteroid(self.position.x, self.position.y, new_radius)
                 asteroid2.thick *= 5
-                asteroid2.color = "blue"
-                asteroid1.velocity = velocity1 * 1.5
-                asteroid2.velocity = velocity2 * 1.5
+                asteroid2.velocity = velocity2 * random.uniform(1.2, 1.8)
             else:
+                # Smallest asteroids: fastest (2.0x to 2.5x)
                 asteroid1 = Asteroid(self.position.x, self.position.y, new_radius)
-                asteroid1.color = "red"
                 asteroid1.thick *= 5
+                asteroid1.velocity = velocity1 * random.uniform(2.0, 2.5)
                 asteroid2 = Asteroid(self.position.x, self.position.y, new_radius)
-                asteroid2.color = "red"
                 asteroid2.thick *= 5
-                asteroid1.velocity = velocity1 * 2.0
-                asteroid2.velocity = velocity2 * 2.0
+                asteroid2.velocity = velocity2 * random.uniform(2.0, 2.5)

@@ -3,6 +3,7 @@ from constants import *
 from player import Player, Shot
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
+from menus import *
 
 def main():
 
@@ -29,36 +30,19 @@ def main():
     while True:
 
         while begin_wait:
-            screen.fill("black")
-            start_game = big_font.render(f"Press ENTER to Start", True, "green")
-            game_quit = font.render(f"Press Q to Quit", True, "red")
-            screen.blit(start_game, (SCREEN_WIDTH//2 - start_game.get_width()//2, SCREEN_HEIGHT//2 - start_game.get_height()//2))
-            screen.blit(game_quit, (SCREEN_WIDTH//2 - game_quit.get_width()//2, 680))
-            pygame.display.flip()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
-                        return
-                    if event.key == pygame.K_RETURN:
-                        score = 0
-                        player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
-                        AsteroidField()
-                        begin_wait = False
+            if not draw_main_menu(screen, font, big_font):
+                return
+            score = 0
+            player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+            AsteroidField()
+            begin_wait = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
             
-        text_surface = font.render(f"Score: {score}", True, "white")
-        text_rect = text_surface.get_rect()
-        text_rect.centerx = SCREEN_WIDTH // 2
-        text_rect.centery = 20
-        
         screen.fill((0,0,0))
-
-        screen.blit(text_surface, text_rect)
+        draw_hud(screen, font, score)
     
         updateable.update(dt)
  
@@ -67,40 +51,24 @@ def main():
 
         for asteroid in asteroids:
             if player.collision(asteroid):
-                screen.fill((0,0,0))
-                end_game = big_font.render(f"Game Over", True, "red")
-                restart = font.render(f"Press R to Retry", True, "green")
-                game_quit = font.render(f"Press Q to Quit", True, "red")
-                main_menu = font.render(f"Press Esc to go to Main Menu", True, "white")
-                screen.blit(end_game, (SCREEN_WIDTH//2 - end_game.get_width()//2, SCREEN_HEIGHT//2 - end_game.get_height()//2))
-                screen.blit(restart, (SCREEN_WIDTH//2 - restart.get_width()//2, 560))
-                screen.blit(game_quit, (SCREEN_WIDTH//2 - game_quit.get_width()//2, 620))
-                screen.blit(main_menu, (SCREEN_WIDTH//2 - main_menu.get_width()//2, 680))
-                pygame.display.flip()
-                wait = True
-                while wait:
-                    for event in pygame.event.get():
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_q:
-                                return
-                            if event.key == pygame.K_r:
-                                score = 0
-                                for g in (updateable, drawable, asteroids, shots):
-                                    g.empty()
-                                player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
-                                AsteroidField()
-                                wait = False
-                            if event.key == pygame.K_ESCAPE:
-                                for g in (updateable, drawable, asteroids, shots):
-                                    g.empty()
-                                begin_wait = True
-                                wait = False
-                        if event.type == pygame.QUIT:
-                            return
+                action = draw_game_over_menu(screen, font, big_font, score)
+                if action == 'quit':
+                    return
+                elif action == 'retry':
+                    score = 0
+                    for g in (updateable, drawable, asteroids, shots):
+                        g.empty()
+                    player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+                    AsteroidField()
+                elif action == 'main_menu':
+                    for g in (updateable, drawable, asteroids, shots):
+                        g.empty()
+                    begin_wait = True
             
             for shot in shots:
                 if shot.collision(asteroid):
                     shot.kill()
+                    print(int(asteroid.velocity.length()))
                     score += asteroid.thick + int(asteroid.velocity.length())
                     asteroid.split()
         
