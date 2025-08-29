@@ -34,7 +34,14 @@ class AsteroidField(pygame.sprite.Sprite):
 
     def spawn(self, radius, position, velocity):
         asteroid = Asteroid(position.x, position.y, radius)
-        asteroid.velocity = velocity
+        if asteroid.radius <= ASTEROID_MIN_RADIUS:
+            asteroid.color = "red"
+            asteroid.velocity = velocity * 2.0
+        elif ASTEROID_MIN_RADIUS < asteroid.radius < ASTEROID_MAX_RADIUS:
+            asteroid.color = "blue"
+            asteroid.velocity = velocity * 1.5
+        else:
+            asteroid.velocity = velocity
 
     def update(self, dt):
         self.spawn_timer += dt
