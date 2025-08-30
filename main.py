@@ -31,10 +31,12 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     begin_wait = True
 
+    
+
     bonus = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
     
     while True:
-
+        
         while begin_wait:
             if not draw_main_menu(screen, font, big_font):
                 return
@@ -134,6 +136,9 @@ def main():
         pygame.display.flip()
 
         dt = clock.tick(60)/1000
+
+        print(f"Objects: {len(asteroids)} asteroids, {len(shots)} shots, {len(objectives)} objectives")
+        print(f"Total sprites: {len(updateable)} updateable, {len(drawable)} drawable")
 
 if __name__ == "__main__":
     main()
