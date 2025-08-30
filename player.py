@@ -4,10 +4,12 @@ from constants import *
 
 class Player(CircleShape):
     
-    def __init__(self, x, y):
+    def __init__(self, x, y, fill_alpha=200):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
         self.timer = 0.0
+        self.too_many_keys = False
+        self.fill_alpha = fill_alpha
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -18,7 +20,7 @@ class Player(CircleShape):
         return [a, b, c]
     
     def draw(self, screen):
-        return pygame.draw.polygon(screen, "white", self.triangle() , 2)
+        return pygame.draw.polygon(screen, (255, 255, 255, self.fill_alpha), self.triangle())
     
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
@@ -27,9 +29,28 @@ class Player(CircleShape):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         self.position += forward * PLAYER_SPEED * dt
 
+    def handle_key_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key in [pygame,pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_SPACE]:
+                self.input_queue.append(event.key)
+        elif event.type == pygame.KEYUP:
+            if event.key in self.input_queue:
+                self.input_queue.remove(event.key)
+
     def update(self, dt):
         keys = pygame.key.get_pressed()
         #self.shot_release = True
+        movement_count = sum([
+            keys[pygame.K_LEFT],
+            keys[pygame.K_RIGHT],
+            keys[pygame.K_UP],
+            keys[pygame.K_DOWN]
+        ])
+
+        if keys[pygame.K_LSHIFT]:
+            movement_count += 1
+
+        self.too_many_keys = (movement_count > 3)
 
         if keys[pygame.K_LEFT]:
             self.rotate(-dt)
@@ -39,7 +60,9 @@ class Player(CircleShape):
             self.move(dt)
         if keys[pygame.K_DOWN]:
             self.move(-dt)
-        if keys[pygame.K_SPACE]:
+
+        
+        if keys[pygame.K_LSHIFT] and not self.too_many_keys:
             if self.timer <= 0.0: # and self.shot_release:
                 self.shoot()
                 self.timer = PLAYER_COOL_DOWN

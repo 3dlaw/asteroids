@@ -21,17 +21,23 @@ def get_velocity_color(velocity):
     
     # Color mapping based on actual velocity ranges (25-414)
     if speed > 350:
-        return (255, 0, 0)      # Red for very fast (>350)
+        level5 = (0, 222, 173)
+        return level5      # Level 5 Red for very fast (>350)
     elif speed > 280:
-        return (255, 128, 0)    # Orange for fast (280-350)
+        level4 =  (178, 40, 85)
+        return level4    # Level 4 Orange for fast (280-350)
     elif speed > 200:
-        return (255, 255, 0)    # Yellow for medium-fast (200-280)
+        level3 = (196, 107, 44)
+        return level3    # Level 3Yellow for medium-fast (200-280)
     elif speed > 120:
-        return (0, 255, 0)      # Green for medium (120-200)
+        level2 = (108, 66, 133)
+        return level2      # Level 2 Green for medium (120-200)
     elif speed > 60:
-        return (0, 0, 255)      # Blue for slow (60-120)
+        level1 = (64, 119, 142)
+        return level1      # Level 1 Blue for slow (60-120)
     else:
-        return (255, 255, 255)    # White for very slow (25-60)
+        level0 = (25, 38, 56)
+        return level0    # Level 0 White for very slow (25-60)
 
 class Asteroid(CircleShape):
     
@@ -118,17 +124,17 @@ class Asteroid(CircleShape):
             new_radius = self.radius - ASTEROID_MIN_RADIUS
             if new_radius > ASTEROID_MIN_RADIUS:
                 # Medium asteroids: medium speed (1.2x to 1.8x)
-                asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 64)
+                asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 128)
                 #asteroid1.thick *= 5
                 asteroid1.velocity = velocity1 * random.uniform(1.2, 1.8)
-                asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 64)
+                asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 128)
                 #asteroid2.thick *= 5
                 asteroid2.velocity = velocity2 * random.uniform(1.2, 1.8)
             else:
                 # Smallest asteroids: fastest (2.0x to 2.5x)
-                asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 0)
+                asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 64)
                 #asteroid1.thick *= 5
                 asteroid1.velocity = velocity1 * random.uniform(2.0, 2.5)
-                asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 0)
+                asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 64)
                 #asteroid2.thick *= 5
                 asteroid2.velocity = velocity2 * random.uniform(2.0, 2.5)

@@ -100,7 +100,7 @@ def draw_game_over_menu(screen, font, big_font, score):
                 if event.key == pygame.K_s:
                     return 'stats'
 
-def draw_hud(screen, font, score):
+def draw_hud(screen, font, score, collected):
     """
     Draw the heads-up display during gameplay.
     
@@ -108,12 +108,20 @@ def draw_hud(screen, font, score):
         screen: Pygame screen surface
         font: Font for text rendering
         score: Current game score
+        collected: Stars Collected
     """
+    if collected>0:
+        star_surface = font.render(f"Stars Collected: {collected}", True, "white")
+        star_rect = star_surface.get_rect()
+        star_rect.centerx = SCREEN_WIDTH//2
+        star_rect.centery = 60
+        screen.blit(star_surface, star_rect)
     text_surface = font.render(f"Score: {score}", True, "white")
     text_rect = text_surface.get_rect()
     text_rect.centerx = SCREEN_WIDTH // 2
     text_rect.centery = 20
     screen.blit(text_surface, text_rect)
+
 
 def draw_stats_menu(screen, font, big_font, game_stats):
     """

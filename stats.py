@@ -2,12 +2,13 @@
 class GameStats:
     def __init__(self):
         self.stats = {
-            "White_asteroids_destroyed": 0,
-            "Blue_asteroids_destroyed": 0,
-            "Green_asteroids_destroyed": 0,
-            "Yellow_asteroids_destroyed": 0,
-            "Orange_asteroids_destroyed": 0,
-            "Red_asteroids_destroyed": 0,
+            "Stars_collected": 0,
+            "Level0_asteroids_destroyed": 0,
+            "Level1_asteroids_destroyed": 0,
+            "Level2_asteroids_destroyed": 0,
+            "Level3_asteroids_destroyed": 0,
+            "Level4_asteroids_destroyed": 0,
+            "Level5_asteroids_destroyed": 0,
             "shots_fired": 0,
             "accuracy": 0
         }

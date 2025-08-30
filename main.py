@@ -7,12 +7,13 @@ from menus import *
 from stats import GameStats
 from powerups import Objective
 import os
+from background import create_space_background
 
 def main():
     os.environ["SDL_AUDIODRIVER"] = "pulse"
     os.environ["PULSE_LATENCY_MSEC"] = "200"
 
-    pygame.mixer.pre_init(frequency=22050, size=-16,channels=1,buffer=65536)
+    pygame.mixer.pre_init(frequency=44100, size=-16,channels=1,buffer=2048)
     pygame.init()
 
     game_stats = GameStats()
@@ -37,16 +38,12 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     begin_wait = True
 
-    debug = pygame.mixer.get_init()
-    print("Audio device:", debug)
-
-    pygame.mixer.Sound("assets/music_main.wav").play(loops=-1)
-
-    #pygame.mixer.music.load("assets/music_main.wav")
-    #pygame.mixer.music.set_volume(0.55)
-    #pygame.mixer.music.play(-1)
-
+    music = pygame.mixer.Sound("assets/new_music.wav")
+    music.set_volume(0.5)
+    music.play(loops=-1)
     
+
+    background = create_space_background(SCREEN_WIDTH, SCREEN_HEIGHT)
 
     bonus = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
     
@@ -56,6 +53,7 @@ def main():
             if not draw_main_menu(screen, font, big_font):
                 return
             score = 0
+            game_stats = GameStats()
             player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
             AsteroidField()
             begin_wait = False
@@ -63,12 +61,13 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+            if event.type == pygame.key.get_pressed():
+                if event.key == pygame.K_LSHIFT:
                     game_stats.increment_stat("shots_fired")
             
-        screen.fill((0,0,0))
-        draw_hud(screen, font, score)
+        #screen.fill((0,0,0))
+        screen.blit(background, (0, 0))
+        draw_hud(screen, font, score, game_stats.stats["Stars_collected"])
     
         updateable.update(dt)
  
@@ -78,7 +77,10 @@ def main():
         for objective in objectives:
             if player.collision(objective):
                 objective.kill()
-                score += 10000
+                if objective.type == ObjectiveType.STAR:
+                    game_stats.increment_stat("Stars_collected")
+                    score += 2000
+
                 
 
         for asteroid in asteroids:
@@ -88,6 +90,7 @@ def main():
                     return
                 elif action == 'retry':
                     score = 0
+                    game_stats = GameStats()
                     for g in (updateable, drawable, asteroids, shots, objectives):
                         g.empty()
                     player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
@@ -109,6 +112,7 @@ def main():
                         begin_wait = True
                     elif stat_action == 'retry':
                         score = 0
+                        game_stats = GameStats()
                         for g in (updateable, drawable, asteroids, shots, objectives):
                             g.empty()
                         player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
@@ -119,28 +123,28 @@ def main():
                 if shot.collision(asteroid):
                     shot.kill()
                     asteroid_color = get_velocity_color(asteroid.velocity)
-                    if asteroid_color == (255, 255, 255):
-                        game_stats.increment_stat("White_asteroids_destroyed")
+                    if asteroid_color == (25, 38, 56):
+                        game_stats.increment_stat("Level0_asteroids_destroyed")
                         score += 50
-                    elif asteroid_color == (0, 0, 255):
-                        game_stats.increment_stat("Blue_asteroids_destroyed")
+                    elif asteroid_color == (64, 119, 142):
+                        game_stats.increment_stat("Level1_asteroids_destroyed")
                         score += 100
-                    elif asteroid_color == (0, 255, 0):
-                        game_stats.increment_stat("Green_asteroids_destroyed")
+                    elif asteroid_color == (108, 66, 133):
+                        game_stats.increment_stat("Level2_asteroids_destroyed")
                         score += 200
-                    elif asteroid_color == (255, 255, 0):
-                        game_stats.increment_stat("Yellow_asteroids_destroyed")
+                    elif asteroid_color == (196, 107, 44):
+                        game_stats.increment_stat("Level3_asteroids_destroyed")
                         score += 250
                         new_star = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
                         new_star.spawn_star()
-                    elif asteroid_color == (255, 128, 0):
-                        game_stats.increment_stat("Orange_asteroids_destroyed")
+                    elif asteroid_color == (178, 40, 85):
+                        game_stats.increment_stat("Level4_asteroids_destroyed")
                         score += 350
                         new_star = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
                         new_star.spawn_star()
                         #print(f"{bonus.position}")
-                    elif asteroid_color == (255, 0, 0):
-                        game_stats.increment_stat("Red_asteroids_destroyed")
+                    elif asteroid_color == (0, 222, 173):
+                        game_stats.increment_stat("Level5_asteroids_destroyed")
                         score += 500
                         new_star = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
                         new_star.spawn_star()
@@ -151,9 +155,6 @@ def main():
         pygame.display.flip()
 
         dt = clock.tick(60)/1000
-
-        print(f"Objects: {len(asteroids)} asteroids, {len(shots)} shots, {len(objectives)} objectives")
-        print(f"Total sprites: {len(updateable)} updateable, {len(drawable)} drawable")
 
 if __name__ == "__main__":
     main()

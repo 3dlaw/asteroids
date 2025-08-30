@@ -1,3 +1,8 @@
+from enum import Enum
+
+class ObjectiveType(Enum):
+    STAR = "star"
+
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 

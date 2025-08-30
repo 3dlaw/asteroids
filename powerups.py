@@ -4,17 +4,18 @@ import random
 from constants import *
 
 class Objective(CircleShape):
-    def __init__(self, x, y, radius, fill_alpha=200):
+    def __init__(self, x, y, radius, fill_alpha=200, obj_type=None):
         super().__init__(x, y, radius)
         self.fill_alpha = fill_alpha
-        self.make_star()
+        self.type = obj_type
+        if self.type == ObjectiveType.STAR:
+            self.make_star()
 
     def update(self, dt):
         if (self.position.x > 0 and self.position.x < SCREEN_WIDTH and self.position.y > 0 and self.position.y < SCREEN_HEIGHT):
             self.fill_alpha -= dt*30
             if self.fill_alpha < 0:
                 self.kill()
-        
 
     def draw(self, screen):
         self.draw_star(screen)
@@ -50,6 +51,7 @@ class Objective(CircleShape):
         outer_radius = self.radius
         inner_radius = self.radius*inner_ratio
         self._local_pts = self._make_star(outer_radius, inner_radius, num_points)
+        self.type = ObjectiveType.STAR
 
     def draw_star(self, screen):
         if hasattr(self, '_local_pts'):
