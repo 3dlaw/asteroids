@@ -6,10 +6,16 @@ from asteroidfield import AsteroidField
 from menus import *
 from stats import GameStats
 from powerups import Objective
+import os
 
 def main():
-    game_stats = GameStats()
+    os.environ["SDL_AUDIODRIVER"] = "pulse"
+    os.environ["PULSE_LATENCY_MSEC"] = "200"
+
+    pygame.mixer.pre_init(frequency=22050, size=-16,channels=1,buffer=65536)
     pygame.init()
+
+    game_stats = GameStats()
     clock = pygame.time.Clock()
     dt = 0
     score = 0
@@ -30,6 +36,15 @@ def main():
     big_font = pygame.font.Font(None, 100)
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     begin_wait = True
+
+    debug = pygame.mixer.get_init()
+    print("Audio device:", debug)
+
+    pygame.mixer.Sound("assets/music_main.wav").play(loops=-1)
+
+    #pygame.mixer.music.load("assets/music_main.wav")
+    #pygame.mixer.music.set_volume(0.55)
+    #pygame.mixer.music.play(-1)
 
     
 

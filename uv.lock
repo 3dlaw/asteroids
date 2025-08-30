@@ -7,11 +7,15 @@ name = "asteroids"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "numpy" },
     { name = "pygame" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pygame", specifier = "==2.6.1" }]
+requires-dist = [
+    { name = "numpy" },
+    { name = "pygame", specifier = "==2.6.1" },
+]
 
 [[package]]
 name = "pygame"
