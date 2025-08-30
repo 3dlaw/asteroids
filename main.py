@@ -5,6 +5,7 @@ from asteroid import Asteroid, get_velocity_color
 from asteroidfield import AsteroidField
 from menus import *
 from stats import GameStats
+from powerups import Objective
 
 def main():
     game_stats = GameStats()
@@ -17,16 +18,20 @@ def main():
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
     shots = pygame.sprite.Group()
+    objectives = pygame.sprite.Group()
 
     Asteroid.containers = (asteroids, updateable, drawable)
     Player.containers = (updateable, drawable)
     AsteroidField.containers = (updateable)
     Shot.containers = (shots, updateable, drawable)
+    Objective.containers = (updateable, drawable, objectives)
     
     font = pygame.font.Font(None, 36)
     big_font = pygame.font.Font(None, 100)
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     begin_wait = True
+
+    bonus = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
     
     while True:
 
@@ -53,6 +58,12 @@ def main():
         for sprite in drawable:
             sprite.draw(screen)
 
+        for objective in objectives:
+            if player.collision(objective):
+                objective.kill()
+                score += 10000
+                
+
         for asteroid in asteroids:
             if player.collision(asteroid):
                 action = draw_game_over_menu(screen, font, big_font, score)
@@ -60,30 +71,32 @@ def main():
                     return
                 elif action == 'retry':
                     score = 0
-                    for g in (updateable, drawable, asteroids, shots):
+                    for g in (updateable, drawable, asteroids, shots, objectives):
                         g.empty()
                     player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
                     AsteroidField()
+                    
                 elif action == 'main_menu':
-                    for g in (updateable, drawable, asteroids, shots):
+                    for g in (updateable, drawable, asteroids, shots, objectives):
                         g.empty()
                     begin_wait = True
                 elif action == 'stats':
-                    for g in (updateable, drawable, asteroids, shots):
+                    for g in (updateable, drawable, asteroids, shots, objectives):
                         g.empty()
                     stat_action = draw_stats_menu(screen, font, big_font, game_stats)
                     if stat_action == 'quit':
                         return
                     elif stat_action == 'main_menu':
-                        for g in (updateable, drawable, asteroids, shots):
+                        for g in (updateable, drawable, asteroids, shots, objectives):
                             g.empty()
                         begin_wait = True
                     elif stat_action == 'retry':
                         score = 0
-                        for g in (updateable, drawable, asteroids, shots):
+                        for g in (updateable, drawable, asteroids, shots, objectives):
                             g.empty()
                         player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
                         AsteroidField()
+                        
            
             for shot in shots:
                 if shot.collision(asteroid):
@@ -101,12 +114,20 @@ def main():
                     elif asteroid_color == (255, 255, 0):
                         game_stats.increment_stat("Yellow_asteroids_destroyed")
                         score += 250
+                        new_star = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
+                        new_star.spawn_star()
                     elif asteroid_color == (255, 128, 0):
                         game_stats.increment_stat("Orange_asteroids_destroyed")
                         score += 350
+                        new_star = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
+                        new_star.spawn_star()
+                        #print(f"{bonus.position}")
                     elif asteroid_color == (255, 0, 0):
                         game_stats.increment_stat("Red_asteroids_destroyed")
                         score += 500
+                        new_star = Objective(2*SCREEN_WIDTH, 2*SCREEN_HEIGHT, 20)
+                        new_star.spawn_star()
+                        #print(f"{bonus.position}")
                     #score += asteroid.thick + int(asteroid.velocity.length())
                     asteroid.split()
         

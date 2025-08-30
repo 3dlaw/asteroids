@@ -44,26 +44,40 @@ class Asteroid(CircleShape):
         self.fill_alpha = fill_alpha
 
     def _make_polygon(self, min_sides = 6, max_sides = 12, angle_jitter = 0.35, radial_jitter = 0.30):
-        sides = random.randint(min_sides, max_sides)
+        '''
+        creates local points for random polygons
+
+        optional args:
+            min_sides - change minimum number of sides from 6
+            max_sides - change maximum number of sides from 12
+            angle_jitter - step angle variance
+            angle_radial - vertex position variance
+        '''
+        sides = random.randint(min_sides, max_sides) 
         step = 360/sides
-        max_angle_jitter = step * angle_jitter
+        max_angle_jitter = step * angle_jitter 
         points = []
         angles = []
 
+        #gets random angles between sides
         for i in range(sides):
-            a = i * step + random.uniform(-max_angle_jitter, max_angle_jitter)
-            angles.append(a)
+            modified_step_angle = i * step + random.uniform(-max_angle_jitter, max_angle_jitter)  
+            angles.append(modified_step_angle)
         angles.sort()
 
-        for a in angles:
-            r = self.radius * (1 + random.uniform(-radial_jitter, radial_jitter))
-            r = max(0.35*self.radius,r)
-            v = pygame.Vector2(0, -r).rotate(a)
-            points.append(v)
+        #gets vertex for sides
+        for angle in angles:
+            vertex_positoin = self.radius * (1 + random.uniform(-radial_jitter, radial_jitter))
+            r = max(0.35*self.radius,vertex_positoin)
+            vertex_vector = pygame.Vector2(0, -vertex_positoin).rotate(angle)
+            points.append(vertex_vector)
 
         return points
 
     def asteroid_shape(self):
+        '''
+        translates local points to global points to be used when drawn
+        '''
         points = []
         for p in self._local_points:
             points.append(self.position + p)
