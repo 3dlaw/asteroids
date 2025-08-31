@@ -13,4 +13,5 @@ wheels/
 .vscode/
 
 #assets
-assets/
+new_music.wav
+shot_sound.wav
