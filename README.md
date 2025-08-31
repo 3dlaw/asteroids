@@ -4,6 +4,10 @@ An expanded and customized version of the classic Asteroids arcade game, origina
 The Boot.dev version focused on **core mechanics only** — this project builds on that foundation to create a complete game experience with menus, statistics, world expansion, and more.
 
 ---
+## Status
+This project is currently in active development.  
+Features, mechanics, and assets may change over time.
+---
 
 ## Features
 
