@@ -1,6 +1,6 @@
 # Asteroids – Expanded Version
 
-An expanded and customized version of the classic Asteroids arcade game, originally based on the [Boot.dev guided project](https://boot.dev).  
+An expanded and customized version of the classic Asteroids arcade game, originally based on the [Boot.dev guided project](https://www.boot.dev/courses/build-asteroids-python).  
 The Boot.dev version focused on **core mechanics only** — this project builds on that foundation to create a complete game experience with menus, statistics, world expansion, and more.
 
 ---
