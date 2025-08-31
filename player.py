@@ -1,7 +1,7 @@
 import pygame
-import camera
 from circleshape import CircleShape
 from constants import *
+from wrapdraw import *
 
 class Player(CircleShape):
     
@@ -28,8 +28,19 @@ class Player(CircleShape):
         return [a, b, c]
     
     def draw(self, screen, cam_rect):
-        cam_pts = [ (p.x - cam_rect.left, p.y -cam_rect.top) for p in self.triangle()]
-        return pygame.draw.polygon(screen, (255, 255, 255, self.fill_alpha), cam_pts)
+        r = self.radius
+        bounding_rect = pygame.Rect(self.position.x - r, self.position.y - r, 2*r, 2*r)
+
+        union_rect = None
+        for ox, oy in wrap_offsets(bounding_rect, cam_rect, self.world_w, self.world_h):
+            pts = [self.position + pygame.Vector2(p).rotate(0) for p in ()]
+            pts = self.triangle()
+            pts = [(p.x + ox - cam_rect.left, p.y + oy - cam_rect.top) for p in pts]
+            last_rect = pygame.draw.polygon(screen, (255, 255, 255, self.fill_alpha), pts)
+            union_rect = last_rect if union_rect is None else union_rect.union(last_rect)
+
+        #cam_pts = [ (p.x - cam_rect.left, p.y -cam_rect.top) for p in self.triangle()]
+        return union_rect
     
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
@@ -40,7 +51,7 @@ class Player(CircleShape):
 
     def handle_key_event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key in [pygame,pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_SPACE]:
+            if event.key in [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_SPACE]:
                 self.input_queue.append(event.key)
         elif event.type == pygame.KEYUP:
             if event.key in self.input_queue:

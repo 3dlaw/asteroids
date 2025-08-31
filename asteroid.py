@@ -1,8 +1,10 @@
 from pty import spawn
+from textwrap import wrap
 import pygame
 from circleshape import CircleShape
 from constants import *
 import random
+from wrapdraw import wrap_offsets
 
 def get_velocity_color(velocity):
     """
@@ -96,19 +98,29 @@ class Asteroid(CircleShape):
             points.append(self.position + pygame.Vector2(p).rotate(-self.angle))
         return points
 
-    def asteroid_shape_screen(self, cam_rect: pygame.Rect):
-        return [(pt.x - cam_rect.left, pt.y - cam_rect.top) for pt in self.asteroid_shape()]
 
     def draw(self, screen, cam_rect):
         # Use velocity-based coloring
         velocity_color = get_velocity_color(self.velocity)
-        cam_pts = self.asteroid_shape_screen(cam_rect)
-        pygame.draw.polygon(screen, (*velocity_color,self.fill_alpha), cam_pts)
+        r = self.radius
+        bounding_rect = pygame.Rect(self.position.x - r, self.position.y - r, 2*r, 2*r)
 
-        overlay = pygame.transform.rotate(self._detail_surface, self.angle)
-        center_screen = (self.position.x - cam_rect.left, self.position.y -cam_rect.top)
-        rect = overlay.get_rect(center=center_screen)
-        screen.blit(overlay, rect.topleft)
+        union_rect = None
+
+        for ox, oy in wrap_offsets(bounding_rect, cam_rect, self.world_w, self.world_h):
+            pts_world = self.asteroid_shape()
+            pts_screen = [(pt.x + ox - cam_rect.left, pt.y + oy - cam_rect.top) for pt in pts_world]
+            poly_rect = pygame.draw.polygon(screen, (*velocity_color, self.fill_alpha), pts_screen)
+
+            overlay = pygame.transform.rotate(self._detail_surface, self.angle)
+            center_screen = (self.position.x + ox - cam_rect.left, self.position.y + oy - cam_rect.top)
+            overlay_rect = overlay.get_rect(center=center_screen)
+            screen.blit(overlay, overlay_rect.topleft)
+
+            union_rect = poly_rect if union_rect is None else union_rect.union(poly_rect)
+            union_rect = union_rect.union(overlay_rect)
+
+        return union_rect
 
     def update(self, dt):
         self.position += self.velocity * dt

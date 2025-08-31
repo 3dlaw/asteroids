@@ -1,6 +1,4 @@
-from doctest import FAIL_FAST
 import pygame
-import background
 from constants import *
 from player import Player, Shot
 from asteroid import Asteroid, get_velocity_color
@@ -163,19 +161,19 @@ def main():
                     elif asteroid_color == (196, 107, 44):
                         game_stats.increment_stat("Level3_asteroids_destroyed")
                         score += 250
-                        new_star = Objective(2*world_w, 2*world_h, 20, world_w=world_w, world_h=world_h, cam=cam, obj_type=None)
-                        new_star.spawn_star()
+                        new_star = Objective(world_w/2, world_h/2, 20,world_w=world_w, world_h=world_h, cam=cam,obj_type=ObjectiveType.STAR)
+                        new_star.spawn_in_view(margin=24)
                     elif asteroid_color == (178, 40, 85):
                         game_stats.increment_stat("Level4_asteroids_destroyed")
                         score += 350
-                        new_star = Objective(2*world_w, 2*world_h, 20, world_w=world_w, world_h=world_h, cam=cam, obj_type=None)
-                        new_star.spawn_star()
+                        new_star = Objective(world_w/2, world_h/2, 20,world_w=world_w, world_h=world_h, cam=cam,obj_type=ObjectiveType.STAR)
+                        new_star.spawn_in_view(margin=24)
                         #print(f"{bonus.position}")
                     elif asteroid_color == (0, 222, 173):
                         game_stats.increment_stat("Level5_asteroids_destroyed")
                         score += 500
-                        new_star = Objective(2*world_w, 2*world_h, 20, world_w=world_w, world_h=world_h, cam=cam, obj_type=None)
-                        new_star.spawn_star()
+                        new_star = Objective(world_w/2, world_h/2, 20,world_w=world_w, world_h=world_h, cam=cam,obj_type=ObjectiveType.STAR)
+                        new_star.spawn_in_view(margin=24)
                         #print(f"{bonus.position}")
                     #score += asteroid.thick + int(asteroid.velocity.length())
                     asteroid.split()
