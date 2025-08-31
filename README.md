@@ -5,8 +5,10 @@ The Boot.dev version focused on **core mechanics only** — this project builds 
 
 ---
 ## Status
+
 This project is currently in active development.  
 Features, mechanics, and assets may change over time.
+
 ---
 
 ## Features
@@ -25,6 +27,9 @@ Features, mechanics, and assets may change over time.
   - Special collectible stars spawn on-screen when certain asteroid levels are destroyed
   - Visible Stars slowly fade/disappear while on visible
 - **World Wrapping** – Players, asteroids, and projectiles wrap around the edges of the world.
+
+  - <img width="500" height="500" alt="world connectivity" src="https://github.com/user-attachments/assets/4d464062-1315-4e1e-965a-d995b156d72e" />
+
 - **Dynamic Spawning** – Asteroids spawn relative to the camera’s position for an active game space.
 
 ---
