@@ -1,3 +1,4 @@
+from pty import spawn
 import pygame
 from circleshape import CircleShape
 from constants import *
@@ -41,13 +42,17 @@ def get_velocity_color(velocity):
 
 class Asteroid(CircleShape):
     
-    def __init__(self, x, y, radius, fill_alpha=200):
+    def __init__(self, x, y, radius, fill_alpha=200, *, world_w=None, world_h=None, wrap_world=True):
         super().__init__(x, y, radius)
         self.thick = 2
         self._local_points = self._make_polygon()
         self.angle = random.uniform(0,360)
         self.spin = random.uniform(-60, 60)
         self.fill_alpha = fill_alpha
+
+        self.wrap_world = wrap_world
+        self.world_w = world_w
+        self.world_h = world_h
 
         self._detail_surface = self.__build_detail_surface()
 
@@ -91,28 +96,36 @@ class Asteroid(CircleShape):
             points.append(self.position + pygame.Vector2(p).rotate(-self.angle))
         return points
 
-    def draw(self, screen):
+    def asteroid_shape_screen(self, cam_rect: pygame.Rect):
+        return [(pt.x - cam_rect.left, pt.y - cam_rect.top) for pt in self.asteroid_shape()]
+
+    def draw(self, screen, cam_rect):
         # Use velocity-based coloring
         velocity_color = get_velocity_color(self.velocity)
-        pygame.draw.polygon(screen, (*velocity_color,self.fill_alpha), self.asteroid_shape())
+        cam_pts = self.asteroid_shape_screen(cam_rect)
+        pygame.draw.polygon(screen, (*velocity_color,self.fill_alpha), cam_pts)
 
         overlay = pygame.transform.rotate(self._detail_surface, self.angle)
-        rect = overlay.get_rect(center=(self.position.x, self.position.y))
+        center_screen = (self.position.x - cam_rect.left, self.position.y -cam_rect.top)
+        rect = overlay.get_rect(center=center_screen)
         screen.blit(overlay, rect.topleft)
 
     def update(self, dt):
         self.position += self.velocity * dt
         self.angle += self.spin * dt
-        buffer = 60
         
-        if self.position.x> SCREEN_WIDTH + buffer:
-            self.kill() 
-        elif self.position.x < 0 - buffer:
-            self.kill()
-        elif self.position.y > SCREEN_HEIGHT + buffer:
-            self.kill()
-        elif self.position.y < 0 - buffer:
-            self.kill()
+        if self.wrap_world and self.world_w and self.world_h:
+            self.position.x %= self.world_w
+            self.position.y %= self.world_h
+        elif self.world_w and self.world_h:
+            buffer = 120
+            if (self.position.x < -buffer or
+                self.position.x > self.world_w + buffer or
+                self.position.y < -buffer or
+                self.position.y > self.world_h + buffer):
+                self.kill()
+        
+      
         
 
     def split(self):
@@ -124,7 +137,14 @@ class Asteroid(CircleShape):
             velocity1 = self.velocity.rotate(rand_angle)
             velocity2 = self.velocity.rotate(-rand_angle)
             new_radius = self.radius - ASTEROID_MIN_RADIUS
+            def spawn_child(vel, alpha, speed_min, speed_max):
+                a = Asteroid(self.position.x, self.position.y, new_radius, alpha, world_w=self.world_w, world_h=self.world_h, wrap_world=self.wrap_world)
+                a.velocity = vel * random.uniform(speed_min, speed_max)
+                return a
             if new_radius > ASTEROID_MIN_RADIUS:
+                spawn_child(velocity1, 128, 1.2, 1.8)
+                spawn_child(velocity2, 128, 1.2, 1.8)
+                '''
                 # Medium asteroids: medium speed (1.2x to 1.8x)
                 asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 128)
                 #asteroid1.thick *= 5
@@ -132,7 +152,11 @@ class Asteroid(CircleShape):
                 asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 128)
                 #asteroid2.thick *= 5
                 asteroid2.velocity = velocity2 * random.uniform(1.2, 1.8)
+                '''
             else:
+                spawn_child(velocity1, 64, 2.0, 2.5)
+                spawn_child(velocity2, 64, 2.0, 2.5)
+                '''
                 # Smallest asteroids: fastest (2.0x to 2.5x)
                 asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 64)
                 #asteroid1.thick *= 5
@@ -140,6 +164,7 @@ class Asteroid(CircleShape):
                 asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 64)
                 #asteroid2.thick *= 5
                 asteroid2.velocity = velocity2 * random.uniform(2.0, 2.5)
+                '''
 
     def __build_detail_surface(self):
         """
@@ -168,12 +193,26 @@ class Asteroid(CircleShape):
         SPOKE_THICK = 4            #1..2
         SPOKE_START_SCALE = 0.98   # Start inside the other edge
 
+        CRATER_DENSITY    = 0.05   # number of craters ≈ radius * this
+        CRATER_MIN_SCALE  = 0.08   # crater min radius ≈ self.radius * this
+        CRATER_MAX_SCALE  = 0.40   # crater max radius ≈ self.radius * this
+        CRATER_EDGE_INSET = 0.88   # keep centers this fraction inside to avoid edges
+        CRATER_TRIES      = 20     # attempts to find an in-polygon point
+        # opacities (keep subtle)
+        CRATER_BASE_ALPHA   = 30
+        CRATER_SHADOW_ALPHA = 35
+        CRATER_DARKRIM_ALPHA= 50
+        CRATER_LIGHtrim_ALPHA= 40
+
         diameter = int(self.radius * 2) + 4
         surf = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
         center = pygame.Vector2(diameter // 2, diameter // 2)
 
         # polygon in local surface space
         poly_pts = [center + p for p in self._local_points]
+
+        mask = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
+        pygame.draw.polygon(mask, (255, 255, 255, 255), poly_pts)
 
         # helper: inset polygon
         def inset(points, s: float):
@@ -215,7 +254,7 @@ class Asteroid(CircleShape):
             
             start = center + (outer_pt - center) * SPOKE_START_SCALE
             end   = innermost_pts[i]
-            pygame.draw.line(surf, (128, 128, 128, RING_LIGHT_ALPHA), start, end, width=SPOKE_THICK)
+            pygame.draw.line(surf, (128, 128, 128 , RING_LIGHT_ALPHA), start, end, width=SPOKE_THICK)
 
         # --- Optional spoke highlights ---
         light_dir = pygame.Vector2(1.0, -0.35).normalize()
@@ -254,9 +293,65 @@ class Asteroid(CircleShape):
 
         surf.blit(edge_overlay, (0, 0))
 
-        # ---- 3) faint speckles (alpha-only) ----
-        mask = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
-        pygame.draw.polygon(mask, (255, 255, 255, 255), poly_pts)
+        #craters take two
+        # --- 2b) CRATERS (alpha-only, masked, light-aware) ---
+        crater_surf = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
+        light_dir = pygame.Vector2(1.0, -0.35).normalize()
+
+        crater_count = max(1, int(self.radius * CRATER_DENSITY))
+        cr_min = max(2, int(self.radius * CRATER_MIN_SCALE))
+        cr_max = max(cr_min + 1, int(self.radius * CRATER_MAX_SCALE))
+
+        def irregular_circle_points(center, radius, jaggedness=0.35, points=10):
+            pts = []
+            for i in range(points):
+                angle = (i / points) * 360
+                r = radius * (1 + random.uniform(-jaggedness, jaggedness))
+                pt = pygame.Vector2(0, -r).rotate(angle) + center
+                pts.append(pt)
+            return pts
+
+        for _ in range(crater_count):
+            # pick a center inside the polygon, away from edges
+            pos = None
+            for _try in range(CRATER_TRIES):
+                x = random.randint(int(center.x - self.radius * CRATER_EDGE_INSET),
+                                int(center.x + self.radius * CRATER_EDGE_INSET))
+                y = random.randint(int(center.y - self.radius * CRATER_EDGE_INSET),
+                                int(center.y + self.radius * CRATER_EDGE_INSET))
+                if 0 <= x < crater_surf.get_width() and 0 <= y < crater_surf.get_height():
+                    if mask.get_at((x, y))[3] > 0:  # inside polygon
+                        pos = pygame.Vector2(x, y)
+                        break
+            if pos is None:
+                continue
+
+            r = random.randint(cr_min, cr_max)
+
+            # base depression (very soft)
+            #pygame.draw.circle(crater_surf, (0, 0, 0, CRATER_BASE_ALPHA), pos, int(r * 0.9))
+            pygame.draw.polygon(crater_surf, (0, 0, 0, CRATER_BASE_ALPHA), irregular_circle_points(pos, int(r * 0.9)))
+
+            # inner shadow (away from light)
+            shadow_pos = pos - light_dir * (r * 0.15)
+            pygame.draw.polygon(crater_surf, (0, 0, 0, CRATER_SHADOW_ALPHA), irregular_circle_points(shadow_pos, int(r * 0.6)))
+
+            # dark rim on far side
+            rim_back = pos - light_dir * (r * 0.25)
+            pygame.draw.polygon(
+                crater_surf, (0, 0, 0, CRATER_DARKRIM_ALPHA), irregular_circle_points(rim_back, r), width=max(1, int(r * 0.25))
+            )
+
+            # bright rim on near side
+            rim_front = pos + light_dir * (r * 0.20)
+            pygame.draw.circle(
+                crater_surf, (255, 255, 255, CRATER_LIGHtrim_ALPHA), rim_front, int(r * 0.85),
+                width=max(1, int(r * 0.18))
+            )
+
+        # clip craters to polygon and bake into overlay
+        crater_surf.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        surf.blit(crater_surf, (0, 0))
 
         speck_surf = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
         specks = int(1000)#self.radius * SPECK_DENSITY)

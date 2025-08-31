@@ -1,10 +1,11 @@
 import pygame
+import camera
 from circleshape import CircleShape
 from constants import *
 
 class Player(CircleShape):
     
-    def __init__(self, x, y, muted=False, fill_alpha=200, game_stats=None):
+    def __init__(self, x, y, *, world_w, world_h, wrap_world=True, muted=False, fill_alpha=200, game_stats=None, cam=None):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
         self.timer = 0.0
@@ -12,6 +13,11 @@ class Player(CircleShape):
         self.fill_alpha = fill_alpha
         self.muted = muted
         self.game_stats = game_stats
+
+        self.world_w = world_w
+        self.world_h = world_h
+        self.wrap_world = wrap_world
+        self.cam = cam
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -21,8 +27,9 @@ class Player(CircleShape):
         c = self.position - forward * self.radius + right
         return [a, b, c]
     
-    def draw(self, screen):
-        return pygame.draw.polygon(screen, (255, 255, 255, self.fill_alpha), self.triangle())
+    def draw(self, screen, cam_rect):
+        cam_pts = [ (p.x - cam_rect.left, p.y -cam_rect.top) for p in self.triangle()]
+        return pygame.draw.polygon(screen, (255, 255, 255, self.fill_alpha), cam_pts)
     
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
@@ -71,6 +78,14 @@ class Player(CircleShape):
         
         self.timer -= dt
 
+        if self.wrap_world:
+            self.position.x %= self.world_w
+            self.position.y %= self.world_h
+        else:
+            self.position.x = max(0, min(self.position.x, self.world_w))
+            self.position.y = max(0, min(self.position.y, self.world_h))
+
+        '''
         #wrap around screen
         if self.position.x> SCREEN_WIDTH:
             self.position.x = 0 
@@ -80,9 +95,10 @@ class Player(CircleShape):
             self.position.y = 0
         elif self.position.y < 0:
             self.position.y = SCREEN_HEIGHT
+        '''
 
     def shoot(self):
-        shot = Shot(self.position.x, self.position.y, SHOT_RADIUS)
+        shot = Shot(self.position.x, self.position.y, SHOT_RADIUS, cam = self.cam)
         shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
         if not self.muted:
             shot_sound = pygame.mixer.Sound("assets/shot_sound.wav")
@@ -94,22 +110,34 @@ class Player(CircleShape):
 
 
 class Shot(CircleShape):
-    def __init__(self, x, y, radius):
+    def __init__(self, x, y, radius, *, cam=None):
         super().__init__(x, y, SHOT_RADIUS)
+        self.cam = cam
 
-    def draw(self, screen):
-        pygame.draw.circle(screen, "white", self.position, self.radius, 2)
+    def draw(self, screen, cam_rect):
+        cam_pts = (self.position.x - cam_rect.left, self.position.y - cam_rect.top)
+        pygame.draw.circle(screen, "white", cam_pts, self.radius, 2)
 
     def update(self, dt):
         self.position += self.velocity * dt
         buffer = 60
+
+        if self.cam is not None:
+            r = self.cam.rect  
+            if (self.position.x < r.left - buffer or
+                self.position.x > r.right + buffer or 
+                self.position.y < r.top - buffer or
+                self.position.y > r.bottom + buffer):
+                self.kill()
+
+        else:
         
-        if self.position.x> SCREEN_WIDTH + buffer:
-            self.kill() 
-        elif self.position.x < 0 - buffer:
-            self.kill()
-        elif self.position.y > SCREEN_HEIGHT + buffer:
-            self.kill()
-        elif self.position.y < 0 - buffer:
-            self.kill()
+            if self.position.x > SCREEN_WIDTH + buffer:
+                self.kill() 
+            elif self.position.x < 0 - buffer:
+                self.kill()
+            elif self.position.y > SCREEN_HEIGHT + buffer:
+                self.kill()
+            elif self.position.y < 0 - buffer:
+                self.kill()
         
