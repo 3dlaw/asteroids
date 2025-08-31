@@ -4,12 +4,14 @@ from constants import *
 
 class Player(CircleShape):
     
-    def __init__(self, x, y, fill_alpha=200):
+    def __init__(self, x, y, muted=False, fill_alpha=200, game_stats=None):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
         self.timer = 0.0
         self.too_many_keys = False
         self.fill_alpha = fill_alpha
+        self.muted = muted
+        self.game_stats = game_stats
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -82,6 +84,13 @@ class Player(CircleShape):
     def shoot(self):
         shot = Shot(self.position.x, self.position.y, SHOT_RADIUS)
         shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
+        if not self.muted:
+            shot_sound = pygame.mixer.Sound("assets/shot_sound.wav")
+            shot_sound.set_volume(0.3)
+            shot_sound.play()
+
+        if self.game_stats:
+            self.game_stats.increment_stat("shots_fired")
 
 
 class Shot(CircleShape):

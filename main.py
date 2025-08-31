@@ -1,3 +1,4 @@
+from doctest import FAIL_FAST
 import pygame
 from constants import *
 from player import Player, Shot
@@ -39,8 +40,9 @@ def main():
     begin_wait = True
 
     music = pygame.mixer.Sound("assets/new_music.wav")
-    music.set_volume(0.5)
+    music.set_volume(0.0)
     music.play(loops=-1)
+    muted = False
     
 
     background = create_space_background(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -54,16 +56,22 @@ def main():
                 return
             score = 0
             game_stats = GameStats()
-            player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+            player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, muted, 200, game_stats)
             AsteroidField()
             begin_wait = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
-            if event.type == pygame.key.get_pressed():
-                if event.key == pygame.K_LSHIFT:
-                    game_stats.increment_stat("shots_fired")
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_m:
+                    muted = not muted
+                    if muted:
+                        music.set_volume(0.0)
+                        player.muted = muted
+                    else:
+                        music.set_volume(0.3)
+                        player.muted = muted
             
         #screen.fill((0,0,0))
         screen.blit(background, (0, 0))
@@ -93,7 +101,7 @@ def main():
                     game_stats = GameStats()
                     for g in (updateable, drawable, asteroids, shots, objectives):
                         g.empty()
-                    player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+                    player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, muted, 200, game_stats)
                     AsteroidField()
                     
                 elif action == 'main_menu':
@@ -115,7 +123,7 @@ def main():
                         game_stats = GameStats()
                         for g in (updateable, drawable, asteroids, shots, objectives):
                             g.empty()
-                        player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+                        player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, muted, 200, game_stats)
                         AsteroidField()
                         
            
