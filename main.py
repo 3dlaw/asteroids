@@ -9,6 +9,7 @@ from objectives import Objective
 import os
 from worldgrid import *
 from camera import Camera
+from menu_bg import MenuBackground
 
 def main():
     os.environ["SDL_AUDIODRIVER"] = "pulse"
@@ -34,8 +35,8 @@ def main():
     Shot.containers = (shots, updateable, drawable)
     Objective.containers = (updateable, drawable, objectives)
     
-    font = pygame.font.Font(None, 36)
-    big_font = pygame.font.Font(None, 100)
+    font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 20)
+    big_font = pygame.font.Font("assets/fonts/Orbitron-Black.ttf", 96)
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     begin_wait = True
 
@@ -44,19 +45,18 @@ def main():
     music.play(loops=-1)
     muted = False
     
+    menu_bg = MenuBackground(SCREEN_WIDTH, SCREEN_HEIGHT, seed=None, n_asteroids=10, planets=True)
     grid = BackgroundGrid(SCREEN_WIDTH, SCREEN_HEIGHT, make_tile_fn=make_tile, nrows=5, ncols=5)
     world_w, world_h = grid.world_w, grid.world_h
 
     cam = Camera(SCREEN_WIDTH, SCREEN_HEIGHT, world_w, world_h, wrap=True)
-    #background = create_space_background(SCREEN_WIDTH, SCREEN_HEIGHT)
     cam.set_deadzone(int(SCREEN_WIDTH*0.25), int(SCREEN_HEIGHT*0.25))
-
-    #bonus = Objective(2*world_w, 2*world_h, 20, world_w=world_w, world_h=world_h, cam=cam, obj_type=None)
     
     while True:
         
         while begin_wait:
-            if not draw_main_menu(screen, font, big_font):
+            start = draw_main_menu(screen, font, big_font, menu_bg, clock)
+            if not start:
                 return
             score = 0
             game_stats = GameStats()
@@ -93,6 +93,7 @@ def main():
             except TypeError:
                 sprite.draw(screen)
 
+        game_snapshot = screen.copy()
         draw_hud(screen, font, score, game_stats.stats["Stars_collected"])
         cols = world_w // SCREEN_WIDTH
         rows = world_h // SCREEN_HEIGHT
@@ -102,11 +103,14 @@ def main():
         offset_x = int(player.position.x % SCREEN_WIDTH)
         offset_y = int(player.position.y % SCREEN_HEIGHT)
         offset_y_disp = SCREEN_HEIGHT - 1 - offset_y
-        coord_surf = font.render(f"Sector: ({tile_x}, {tile_y_disp})|Local: ({offset_x}, {offset_y_disp})", True, "white")
-        coord_rect = coord_surf.get_rect()
-        coord_rect.centerx = 200
-        coord_rect.centery = SCREEN_HEIGHT - 40
+        sector_line = f"Sector: ({tile_x}, {tile_y_disp})"
+        coord_line = f"Local: ({offset_x}, {offset_y_disp})"
+        coord_surf = font.render(coord_line, True, "white")
+        coord_rect = coord_surf.get_rect(topleft=(20, SCREEN_HEIGHT - 40))
+        sector_surf = font.render(sector_line, True, "white")
+        sector_rect = sector_surf.get_rect(bottomleft=(coord_rect.left, coord_rect.top -2))
         screen.blit(coord_surf, coord_rect)
+        screen.blit(sector_surf, sector_rect)
 
         for objective in objectives:
             if player.collision(objective):
@@ -119,7 +123,7 @@ def main():
 
         for asteroid in asteroids:
             if player.collision(asteroid):
-                action = draw_game_over_menu(screen, font, big_font, score)
+                action = draw_game_over_menu(screen, font, big_font, score, menu_bg, clock, game_snapshot)
                 if action == 'quit':
                     return
                 elif action == 'retry':
@@ -137,7 +141,7 @@ def main():
                 elif action == 'stats':
                     for g in (updateable, drawable, asteroids, shots, objectives):
                         g.empty()
-                    stat_action = draw_stats_menu(screen, font, big_font, game_stats)
+                    stat_action = draw_stats_menu(screen, font, big_font, game_stats, menu_bg, clock, game_snapshot)
                     if stat_action == 'quit':
                         return
                     elif stat_action == 'main_menu':
