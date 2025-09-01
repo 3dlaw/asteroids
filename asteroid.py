@@ -11,7 +11,7 @@ def get_velocity_color(velocity):
     Get a color based on velocity.length(), creating a gradient from red (fastest) to blue (slowest).
     
     Args:
-        velocity: Pygame Vector2 representing velocity
+        velocity: vector
     
     Returns:
         tuple: RGB color tuple (r, g, b)
@@ -31,7 +31,7 @@ def get_velocity_color(velocity):
         return level4    # Level 4 Orange for fast (280-350)
     elif speed > 200:
         level3 = (196, 107, 44)
-        return level3    # Level 3Yellow for medium-fast (200-280)
+        return level3    # Level 3 Yellow for medium-fast (200-280)
     elif speed > 120:
         level2 = (108, 66, 133)
         return level2      # Level 2 Green for medium (120-200)
@@ -67,6 +67,8 @@ class Asteroid(CircleShape):
             max_sides - change maximum number of sides from 12
             angle_jitter - step angle variance
             angle_radial - vertex position variance
+
+        returns local points of polygon
         '''
         sides = random.randint(min_sides, max_sides) 
         step = 360/sides
@@ -156,53 +158,33 @@ class Asteroid(CircleShape):
             if new_radius > ASTEROID_MIN_RADIUS:
                 spawn_child(velocity1, 128, 1.2, 1.8)
                 spawn_child(velocity2, 128, 1.2, 1.8)
-                '''
-                # Medium asteroids: medium speed (1.2x to 1.8x)
-                asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 128)
-                #asteroid1.thick *= 5
-                asteroid1.velocity = velocity1 * random.uniform(1.2, 1.8)
-                asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 128)
-                #asteroid2.thick *= 5
-                asteroid2.velocity = velocity2 * random.uniform(1.2, 1.8)
-                '''
+     
             else:
                 spawn_child(velocity1, 64, 2.0, 2.5)
                 spawn_child(velocity2, 64, 2.0, 2.5)
-                '''
-                # Smallest asteroids: fastest (2.0x to 2.5x)
-                asteroid1 = Asteroid(self.position.x, self.position.y, new_radius, 64)
-                #asteroid1.thick *= 5
-                asteroid1.velocity = velocity1 * random.uniform(2.0, 2.5)
-                asteroid2 = Asteroid(self.position.x, self.position.y, new_radius, 64)
-                #asteroid2.thick *= 5
-                asteroid2.velocity = velocity2 * random.uniform(2.0, 2.5)
-                '''
 
     def __build_detail_surface(self):
         """
-        Returns a transparent detail OVERLAY (no base fill).
-        It's intentionally subtle so the main color shows through:
-        - faint inset bands (alpha only)
-        - gentle edge light/shadow (very low alpha)
-        - few speckles
-        - no craters, no radial vignette
+        Returns a transparent detail OVERLAY
+        - rings, speckles, craters, spokes as an attempt at depth lol 
         """
-        RING_LIGHT_ALPHA = 14      # 12 → 14 (slightly stronger)
-        RING_DARK_ALPHA  = 8      # 10 → 12
+        #constants to make tweaking easier
+        RING_LIGHT_ALPHA = 14      # higher = brighter
+        RING_DARK_ALPHA  = 8       # higher = darker
 
-        EDGE_HI_MAX_ALPHA = 50     # 36 → 80 (way more visible)
-        EDGE_SH_MAX_ALPHA = 40     # 26 → 60
-        EDGE_INSET_SCALE  = 0.96   # 0.965 → 0.96 (hug the outline more)
-        EDGE_THICK        = 3      # 1px; switch to 2 if you want bolder
+        EDGE_HI_MAX_ALPHA = 50     # attempt at highlights
+        EDGE_SH_MAX_ALPHA = 40     # attempt at shadows
+        EDGE_INSET_SCALE  = 0.96   # offset 
+        EDGE_THICK        = 3      # thickness
 
-        SPECK_DENSITY     = 1.2    # radius * 0.8 → radius * 1.1 (more dots)
-        SPECK_LIGHT_ALPHA = 26     # 12 → 26
-        SPECK_DARK_ALPHA  = 30     # new (some darker specks)
-        SPECK_RADIUS_MIN  = 1      # still tiny
+        SPECK_DENSITY     = 1.2    # more dots
+        SPECK_LIGHT_ALPHA = 26     # higher = brighter
+        SPECK_DARK_ALPHA  = 30     # higher = darker 
+        SPECK_RADIUS_MIN  = 1      # tiny
         SPECK_RADIUS_MAX  = 5      # a few slightly bigger pixels
 
         SPOKE_ALPHA = 12           # darkness of spokes
-        SPOKE_THICK = 4            #1..2
+        SPOKE_THICK = 4            # thickness
         SPOKE_START_SCALE = 0.98   # Start inside the other edge
 
         CRATER_DENSITY    = 0.05   # number of craters ≈ radius * this
@@ -211,7 +193,7 @@ class Asteroid(CircleShape):
         CRATER_EDGE_INSET = 0.88   # keep centers this fraction inside to avoid edges
         CRATER_TRIES      = 20     # attempts to find an in-polygon point
         # opacities (keep subtle)
-        CRATER_BASE_ALPHA   = 30
+        CRATER_BASE_ALPHA   = 30   
         CRATER_SHADOW_ALPHA = 35
         CRATER_DARKRIM_ALPHA= 50
         CRATER_LIGHtrim_ALPHA= 40
@@ -234,7 +216,7 @@ class Asteroid(CircleShape):
                 out.append(center + v * s)
             return out
 
-        # ---- 1) very light inset bands (alpha-only) ----
+        # number of rings/bands
         layers = 7
         for i in range(1, layers + 1):
             s = 1.0 - 0.09 * i
@@ -242,7 +224,8 @@ class Asteroid(CircleShape):
             inner = inset(poly_pts, s)
             # alternate tiny light/dark; keep ALPHA TINY
             if i % 2:
-                col = (128, 128, 128, RING_LIGHT_ALPHA)   # subtle light
+                col = (128, 128, 128, RING_LIGHT_ALPHA)
+            #my attempt at lerping from dark to light for smooth transition in middle   
             else:
                 t = (i - 2)/(layers - 2)
                 dr = 0
@@ -254,13 +237,14 @@ class Asteroid(CircleShape):
                 r = int(dr + (lr - dr)*t)
                 g = int(dg + (lg - dg)*t)
                 b = int(db + (lb - db)*t)
-                col = (r,g,b,RING_LIGHT_ALPHA)         # subtle dark
+                col = (r,g,b,RING_LIGHT_ALPHA)         
             pygame.draw.polygon(surf, col, inner)
             if i == layers: innermost_pts = inner
 
-        # --- SPOKES from each vertex to the innermost ring ---
-        # Map vertex i to its inset counterpart i (inset() preserves ordering)
+        # "Spokes" = lines going from outside to inner ring on the corners
+        # Map vertex i to its inset counterpart i
         for i, outer_pt in enumerate(poly_pts):
+            #skip some corners bc too much looked goofy
             if i % 3:
                 continue
             
@@ -268,17 +252,17 @@ class Asteroid(CircleShape):
             end   = innermost_pts[i]
             pygame.draw.line(surf, (128, 128, 128 , RING_LIGHT_ALPHA), start, end, width=SPOKE_THICK)
 
-        # --- Optional spoke highlights ---
+        # Spoke highlights? honestly have no idea chatGPT suggest it though. 
         light_dir = pygame.Vector2(1.0, -0.35).normalize()
         for i, outer_pt in enumerate(poly_pts):
             start = center + (outer_pt - center) * SPOKE_START_SCALE
             end   = innermost_pts[i]
             mid = start.lerp(end, 0.5)
-            tip = mid + light_dir * 0.6  # small offset toward light
+            tip = mid + light_dir * 0.6  
             pygame.draw.line(surf, (255, 255, 255, 12), mid, tip, 1)
 
 
-        # ---- 2) gentle edge lighting (alpha-only) ----
+        #again, not sure what this does. I don't see how shadow does anything when I don't have a light source? 
         light_dir = pygame.Vector2(1.0, -0.35).normalize()
         edge_overlay = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
         n = len(poly_pts)
@@ -289,24 +273,23 @@ class Asteroid(CircleShape):
             if edge.length_squared() == 0:
                 continue
             normal = pygame.Vector2(-edge.y, edge.x).normalize()
-            facing = normal.dot(light_dir)  # >0 highlight, <0 shadow
+            facing = normal.dot(light_dir)
 
             a_in = center + (a - center) * EDGE_INSET_SCALE
             b_in = center + (b - center) * EDGE_INSET_SCALE
 
             if facing > 0.12:
-                alpha = int(EDGE_HI_MAX_ALPHA * min(1.0, facing))   # very low
+                alpha = int(EDGE_HI_MAX_ALPHA * min(1.0, facing))   
                 color = (255, 255, 255, alpha)
                 pygame.draw.line(edge_overlay, color, a_in, b_in, width=EDGE_THICK)
             elif facing < -0.12:
-                alpha = int(26 * min(1.0, -facing))  # very low
+                alpha = int(26 * min(1.0, -facing))  
                 color = (0, 0, 0, alpha)
                 pygame.draw.line(edge_overlay, color, a_in, b_in, width=EDGE_THICK)
 
         surf.blit(edge_overlay, (0, 0))
 
         #craters take two
-        # --- 2b) CRATERS (alpha-only, masked, light-aware) ---
         crater_surf = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
         light_dir = pygame.Vector2(1.0, -0.35).normalize()
 
@@ -314,6 +297,7 @@ class Asteroid(CircleShape):
         cr_min = max(2, int(self.radius * CRATER_MIN_SCALE))
         cr_max = max(cr_min + 1, int(self.radius * CRATER_MAX_SCALE))
 
+        #makes an irregular cicle shape so craters don't look too much lik bubbles lol 
         def irregular_circle_points(center, radius, jaggedness=0.35, points=10):
             pts = []
             for i in range(points):
@@ -340,8 +324,8 @@ class Asteroid(CircleShape):
 
             r = random.randint(cr_min, cr_max)
 
+            # another chatgpt sugggestion for getting some shadow 
             # base depression (very soft)
-            #pygame.draw.circle(crater_surf, (0, 0, 0, CRATER_BASE_ALPHA), pos, int(r * 0.9))
             pygame.draw.polygon(crater_surf, (0, 0, 0, CRATER_BASE_ALPHA), irregular_circle_points(pos, int(r * 0.9)))
 
             # inner shadow (away from light)
@@ -366,7 +350,7 @@ class Asteroid(CircleShape):
         surf.blit(crater_surf, (0, 0))
 
         speck_surf = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
-        specks = int(1000)#self.radius * SPECK_DENSITY)
+        specks = int(1000)
         for _ in range(specks):
             x = random.randint(int(center.x - self.radius), int(center.x + self.radius))
             y = random.randint(int(center.y - self.radius), int(center.y + self.radius))
@@ -381,7 +365,6 @@ class Asteroid(CircleShape):
         speck_surf.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
         surf.blit(speck_surf, (0, 0))
 
-        # No baked outline here (we’ll draw the outline on screen)
         return surf
 
         

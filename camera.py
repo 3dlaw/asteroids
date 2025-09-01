@@ -8,18 +8,22 @@ class Camera:
         self.world_h = world_h
         self.wrap = wrap
 
+    # defines where the player starts to push the camera/view
     def set_deadzone(self, margin_x: int, margin_y: int):
         self.margin_x, self.margin_y = margin_x, margin_y
 
+    #defines the camera movements
     def move(self, dx: float, dy: float):
         self.rect.x += dx
         self.rect.y += dy
         self._post_update()
 
+    #where to center camera
     def center_on(self, x: float, y: float):
         self.rect.center = (x, y)
         self._post_update()
 
+    #calculates coords for the wrapping accross edge tiles
     def _nearest_on_torus(self, coord: float, ref: float, size: float) -> float:
         # map coord to torus 
         d = coord - ref

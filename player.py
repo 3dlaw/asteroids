@@ -1,3 +1,4 @@
+from textwrap import wrap
 import pygame
 from circleshape import CircleShape
 from constants import *
@@ -109,7 +110,7 @@ class Player(CircleShape):
         '''
 
     def shoot(self):
-        shot = Shot(self.position.x, self.position.y, SHOT_RADIUS, cam = self.cam)
+        shot = Shot(self.position.x, self.position.y, SHOT_RADIUS, cam = self.cam, world_w = self.world_w, world_h=self.world_h)
         shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
         if not self.muted:
             shot_sound = pygame.mixer.Sound("assets/shot_sound.wav")
@@ -121,25 +122,40 @@ class Player(CircleShape):
 
 
 class Shot(CircleShape):
-    def __init__(self, x, y, radius, *, cam=None):
+    def __init__(self, x, y, radius, *, cam=None, world_w=None, world_h=None):
         super().__init__(x, y, SHOT_RADIUS)
         self.cam = cam
+        self.world_w = world_w
+        self.world_h = world_h
+        self.age = 0.0
+
+    def _is_visible(self, buffer: int = 60) -> bool:
+        if self.cam is None or self.world_w is None or self.world_h is None:
+            r = self.radius
+            return (0 - buffer <= self.position.x - r <= SCREEN_WIDTH + buffer and
+                    0 - buffer <= self.position.y - r <= SCREEN_HEIGHT + buffer)
+
+        cam_rect = self.cam.rect.inflate(buffer*2, buffer*2)
+        r = self.radius
+        bounding_rect = pygame.Rect(self.position.x - r, self.position.y - r, 2*r, 2*r)
+        return len(wrap_offsets(bounding_rect, cam_rect, self.world_w, self.world_h)) > 0
 
     def draw(self, screen, cam_rect):
-        cam_pts = (self.position.x - cam_rect.left, self.position.y - cam_rect.top)
-        pygame.draw.circle(screen, "white", cam_pts, self.radius, 2)
+        if self.cam and self.world_w and self.world_h:
+            for p in screen_positions_wrapped(self.position, cam_rect, self.world_w, self.world_h, self.radius + 2):
+                pygame.draw.circle(screen, "white", (int(p.x), int(p.y)), self.radius, 2)
+        else:
+            cam_pts = (self.position.x - cam_rect.left, self.position.y - cam_rect.top)
+            pygame.draw.circle(screen, "white", cam_pts, self.radius, 2)
 
     def update(self, dt):
+        self.age += dt
         self.position += self.velocity * dt
-        buffer = 60
-
-        if self.cam is not None:
-            r = self.cam.rect  
-            if (self.position.x < r.left - buffer or
-                self.position.x > r.right + buffer or 
-                self.position.y < r.top - buffer or
-                self.position.y > r.bottom + buffer):
-                self.kill()
+        buffer = 90
+        if self.cam and self.world_w and self.world_h:
+            if self.age > 0.05:
+                if not is_on_screen_wrapped(self.position, self.cam.rect, self.world_w, self.world_h, self.radius, buffer):
+                    self.kill()
 
         else:
         

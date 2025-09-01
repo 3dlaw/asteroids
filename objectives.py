@@ -1,4 +1,3 @@
-from textwrap import wrap
 import pygame
 from circleshape import CircleShape
 import random

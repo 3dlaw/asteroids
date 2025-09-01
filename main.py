@@ -5,14 +5,10 @@ from asteroid import Asteroid, get_velocity_color
 from asteroidfield import AsteroidField
 from menus import *
 from stats import GameStats
-from powerups import Objective
+from objectives import Objective
 import os
-from background import create_space_background
-from worldgrid import BackgroundGrid
+from worldgrid import *
 from camera import Camera
-
-def make_tile(width, height, seed):
-    return create_space_background(width, height, seed=seed)
 
 def main():
     os.environ["SDL_AUDIODRIVER"] = "pulse"
@@ -48,11 +44,10 @@ def main():
     music.play(loops=-1)
     muted = False
     
-    tile_w, tile_h = SCREEN_WIDTH, SCREEN_HEIGHT
-    grid = BackgroundGrid(tile_w, tile_h, make_tile)
+    grid = BackgroundGrid(SCREEN_WIDTH, SCREEN_HEIGHT, make_tile_fn=make_tile, nrows=5, ncols=5)
     world_w, world_h = grid.world_w, grid.world_h
 
-    cam = Camera(tile_w, tile_h, world_w, world_h, wrap=True)
+    cam = Camera(SCREEN_WIDTH, SCREEN_HEIGHT, world_w, world_h, wrap=True)
     #background = create_space_background(SCREEN_WIDTH, SCREEN_HEIGHT)
     cam.set_deadzone(int(SCREEN_WIDTH*0.25), int(SCREEN_HEIGHT*0.25))
 
@@ -85,10 +80,10 @@ def main():
         #screen.fill((0,0,0))
         #screen.blit(background, (0, 0))
        
-    
+        cam.push_follow(player.position.x, player.position.y)
         updateable.update(dt)
 
-        cam.push_follow(player.position.x, player.position.y)
+        
 
         grid.draw(screen, cam.rect, wrap=cam.wrap)
  
@@ -99,6 +94,19 @@ def main():
                 sprite.draw(screen)
 
         draw_hud(screen, font, score, game_stats.stats["Stars_collected"])
+        cols = world_w // SCREEN_WIDTH
+        rows = world_h // SCREEN_HEIGHT
+        tile_x = int(player.position.x // SCREEN_WIDTH) % cols
+        tile_y = int(player.position.y // SCREEN_HEIGHT) % rows
+        tile_y_disp = (rows - 1) - tile_y
+        offset_x = int(player.position.x % SCREEN_WIDTH)
+        offset_y = int(player.position.y % SCREEN_HEIGHT)
+        offset_y_disp = SCREEN_HEIGHT - 1 - offset_y
+        coord_surf = font.render(f"Sector: ({tile_x}, {tile_y_disp})|Local: ({offset_x}, {offset_y_disp})", True, "white")
+        coord_rect = coord_surf.get_rect()
+        coord_rect.centerx = 200
+        coord_rect.centery = SCREEN_HEIGHT - 40
+        screen.blit(coord_surf, coord_rect)
 
         for objective in objectives:
             if player.collision(objective):

@@ -5,6 +5,7 @@ from constants import *
 
 
 class AsteroidField(pygame.sprite.Sprite):
+    #defines the edges of the screen
     edges = [
         [pygame.Vector2(1, 0), lambda y: pygame.Vector2(-ASTEROID_MAX_RADIUS, y * SCREEN_HEIGHT)],
         [pygame.Vector2(-1, 0), lambda y: pygame.Vector2(SCREEN_WIDTH + ASTEROID_MAX_RADIUS, y * SCREEN_HEIGHT)],
@@ -23,8 +24,6 @@ class AsteroidField(pygame.sprite.Sprite):
 
     def spawn(self, radius, position_world, velocity_world):
         asteroid = Asteroid(position_world.x, position_world.y, radius, world_w=self.world_w, world_h=self.world_h, wrap_world=self.wrap_world)
-        #print(f"Asteroid Spawn: ({asteroid.position.x}, {asteroid.position.y})")
-        
         # Size-based velocity scaling: smaller = faster, larger = slower
         if asteroid.radius <= ASTEROID_MIN_RADIUS:
             # Smallest asteroids: fastest (2.0x to 2.5x)

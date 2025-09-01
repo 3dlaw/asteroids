@@ -1,5 +1,6 @@
 from enum import Enum
 
+# Where I plan to add more objectives and powerups
 class ObjectiveType(Enum):
     STAR = "star"
 

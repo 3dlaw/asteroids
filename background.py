@@ -12,6 +12,8 @@ def _make_starfield(size, n_small=450, n_med=110, n_big=28, seed=None):
         n_med - number of medium stars
         n_big - number of big stars
         seed - if want to reproduce same output
+
+    returns surface of star placements
     '''
     if seed is not None:
         rnd = random.Random(seed)
@@ -21,7 +23,7 @@ def _make_starfield(size, n_small=450, n_med=110, n_big=28, seed=None):
 
     w, h = size
     surf = pygame.Surface(size).convert()
-    surf.fill((0, 0, 0))  # we’ll add it with BLEND_ADD later if desired
+    surf.fill((0, 0, 0)) 
 
     # small stars - single pixel
     for _ in range(n_small):
@@ -38,6 +40,7 @@ def _make_starfield(size, n_small=450, n_med=110, n_big=28, seed=None):
         x, y = randrange(w), randrange(h)
         pygame.draw.circle(surf, (200, 220, 255), (x, y), 2)
         pygame.draw.circle(surf, (40, 60, 120), (x, y), 4, width=1)
+
     return surf
 
 def _make_nebula(size, blobs=10, hue=(18, 26, 48), alpha=10, seed=None):
@@ -49,6 +52,7 @@ def _make_nebula(size, blobs=10, hue=(18, 26, 48), alpha=10, seed=None):
         hue - base color
         alpha - transparency
         seed - if want repeatable output
+    returns surface with the nebulas
     '''
     if seed is not None:
         rnd = random.Random(seed)
@@ -59,7 +63,6 @@ def _make_nebula(size, blobs=10, hue=(18, 26, 48), alpha=10, seed=None):
         randint = random.randint
 
     w, h = size
-    #transparent surface
     surf = pygame.Surface(size, pygame.SRCALPHA)
 
     #overlay the clouds
@@ -69,7 +72,7 @@ def _make_nebula(size, blobs=10, hue=(18, 26, 48), alpha=10, seed=None):
         #cloud position 
         x, y = randrange(-r, w + r), randrange(-r, h + r)
 
-        # layered translucent circles for a soft cloud. Concentric circles for gradient
+        # layered circles for a soft cloud. Concentric circles for gradient
         for k in range(6, 0, -1):
             a = max(1, alpha - 2 * (6 - k))
             pygame.draw.circle(surf, (*hue, a), (x, y), int(r * k / 6))
@@ -77,7 +80,7 @@ def _make_nebula(size, blobs=10, hue=(18, 26, 48), alpha=10, seed=None):
 
 def create_space_background(width, height, *, darker=True, seed=None):
     """
-    Returns a pygame.Surface with a dark space look.
+    Returns the combined surfaces
     Args:
         width, height - screen dims
         darker - makes it a bit darker lol
