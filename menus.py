@@ -74,7 +74,8 @@ def draw_main_menu(screen, font, big_font, menu_bg, clock):
         menu_bg.draw(screen)
 
         # Main title
-        start_game = big_font.render("Press ENTER to Start", True, FONTCOLORS["menu_title"])
+        start_game = render_text_with_shadow("Press ENTER to Start", big_font, FONTCOLORS["menu_title"], shadow_color=FONTCOLORS["shadow"], offset=(6,6), shadow_alpha=180)
+        #start_game = big_font.render("Press ENTER to Start", True, FONTCOLORS["menu_title"])
         start_rect = start_game.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
         screen.blit(start_game, start_rect)
         
@@ -123,12 +124,14 @@ def draw_game_over_menu(screen, font, big_font, score, menu_bg, clock, game_snap
                 
             
         # Game over title
-        end_game = big_font.render("GAME OVER", True, FONTCOLORS["title_game_over"])
+        end_game = render_text_with_outline("GAME OVER", big_font, FONTCOLORS["title_game_over"], outline_color=(20,0,0), thickness=3)
+        #end_game = big_font.render("GAME OVER", True, FONTCOLORS["title_game_over"])
         end_rect = end_game.get_rect(center=(SCREEN_WIDTH//2, 80))
         screen.blit(end_game, end_rect)
         
         # Score display
-        score_text = font.render(f"Final Score: {score}", True, FONTCOLORS["score"])
+        score_text = render_text_with_shadow(f"Final Score: {score}",font,FONTCOLORS["score"],shadow_color=(0,0,0), offset=(2,2), shadow_alpha=150)
+        #score_text = font.render(f"Final Score: {score}", True, FONTCOLORS["score"])
         score_rect = score_text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2 + 80))
         screen.blit(score_text, score_rect)
         

@@ -38,10 +38,41 @@ class BackgroundGrid:
         tw, th = self.tile_w, self.tile_h
         view_w, view_h = camera_rect.w, camera_rect.h
 
+        #screen-space origin for first tile
+        x0 = -(camera_rect.left % tw)
+        y0 = -(camera_rect.top % th)
+
         # Which tile indices does the camera cover?
         start_col = camera_rect.left // tw
         start_row = camera_rect.top  // th
 
+        need_cols = (view_w // tw) + 2
+        need_rows = (view_h // th) + 2
+
+        for row in range(need_rows):
+            world_row = start_row + row
+            if wrap:
+                trow = world_row % self.nrows
+            else:
+                if not (0 <= world_row < self.nrows):
+                    continue
+                trow = world_row
+            
+            screen_y = y0 + row * th
+
+            for col in range(need_cols):
+                world_col = start_col + col
+                if wrap:
+                    tcol = world_col % self.ncols
+                else:
+                    if not (0 <= world_col < self.ncols):
+                        continue
+                    tcol = world_col
+                
+                screen_x = x0 + col * tw
+                tile = self.tiles[trow][tcol]
+                screen.blit(tile, (screen_x, screen_y))
+'''
         #how many tiles needed to cover viewport? 
         need_cols = 1 + math.ceil((camera_rect.right - (start_col * tw)) / tw)
         need_rows = 1 + math.ceil((camera_rect.bottom - (start_row * th)) / th)
@@ -73,5 +104,9 @@ class BackgroundGrid:
                 blit_y = world_y - camera_rect.top
                 screen.blit(tile, (blit_x, blit_y))
 
+'''
+
 def make_tile(width, height, seed):
-    return create_space_background(width, height, seed=seed)
+    surf = pygame.Surface((width, height), pygame.SRCALPHA)
+    return surf.convert_alpha()
+    #return create_space_background(width, height, seed=seed)

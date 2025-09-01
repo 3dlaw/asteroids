@@ -10,6 +10,7 @@ import os
 from worldgrid import *
 from camera import Camera
 from menu_bg import MenuBackground
+from background import ParallaxBackground, _make_starfield, _make_nebula, _make_planet_overlay
 
 def main():
     os.environ["SDL_AUDIODRIVER"] = "pulse"
@@ -44,6 +45,8 @@ def main():
     music.set_volume(0.0)
     music.play(loops=-1)
     muted = False
+
+    pbg = ParallaxBackground(SCREEN_WIDTH, SCREEN_HEIGHT, seed=None, make_starfield=_make_starfield, make_nebula=_make_nebula, make_planets=_make_planet_overlay)
     
     menu_bg = MenuBackground(SCREEN_WIDTH, SCREEN_HEIGHT, seed=None, n_asteroids=10, planets=True)
     grid = BackgroundGrid(SCREEN_WIDTH, SCREEN_HEIGHT, make_tile_fn=make_tile, nrows=5, ncols=5)
@@ -83,9 +86,12 @@ def main():
         cam.push_follow(player.position.x, player.position.y)
         updateable.update(dt)
 
-        
-
+        screen.fill((3, 4, 8))
+        pbg.begin_frame(cam.rect, wrap_w=world_w, wrap_h=world_h)
+        pbg.update(dt)
+        pbg.draw_far(screen, cam.rect)
         grid.draw(screen, cam.rect, wrap=cam.wrap)
+        pbg.draw_near(screen, cam.rect)
  
         for sprite in drawable:
             try: 
