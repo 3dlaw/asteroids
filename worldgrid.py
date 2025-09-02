@@ -73,6 +73,8 @@ class BackgroundGrid:
                 tile = self.tiles[trow][tcol]
                 screen.blit(tile, (screen_x, screen_y))
 '''
+        above is a cleaner way of doing below which works better with the new depth added to the background.
+        
         #how many tiles needed to cover viewport? 
         need_cols = 1 + math.ceil((camera_rect.right - (start_col * tw)) / tw)
         need_rows = 1 + math.ceil((camera_rect.bottom - (start_row * th)) / th)

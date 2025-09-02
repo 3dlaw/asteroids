@@ -42,7 +42,7 @@ def main():
     begin_wait = True
 
     music = pygame.mixer.Sound("assets/new_music.wav")
-    music.set_volume(0.0)
+    music.set_volume(0.3)
     music.play(loops=-1)
     muted = False
 

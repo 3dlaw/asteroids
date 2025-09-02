@@ -252,7 +252,7 @@ class Asteroid(CircleShape):
             end   = innermost_pts[i]
             pygame.draw.line(surf, (128, 128, 128 , RING_LIGHT_ALPHA), start, end, width=SPOKE_THICK)
 
-        # Spoke highlights? honestly have no idea chatGPT suggest it though. 
+        # Spoke highlights
         light_dir = pygame.Vector2(1.0, -0.35).normalize()
         for i, outer_pt in enumerate(poly_pts):
             start = center + (outer_pt - center) * SPOKE_START_SCALE
@@ -262,7 +262,7 @@ class Asteroid(CircleShape):
             pygame.draw.line(surf, (255, 255, 255, 12), mid, tip, 1)
 
 
-        #again, not sure what this does. I don't see how shadow does anything when I don't have a light source? 
+        #highlights/shadows
         light_dir = pygame.Vector2(1.0, -0.35).normalize()
         edge_overlay = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
         n = len(poly_pts)

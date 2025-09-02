@@ -114,7 +114,7 @@ class Player(CircleShape):
         shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
         if not self.muted:
             shot_sound = pygame.mixer.Sound("assets/shot_sound.wav")
-            shot_sound.set_volume(0.3)
+            shot_sound.set_volume(0.1)
             shot_sound.play()
 
         if self.game_stats:

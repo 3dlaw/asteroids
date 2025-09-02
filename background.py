@@ -106,18 +106,6 @@ def create_space_background(width, height, *, darker=True, seed=None, planets=Tr
 
     return bg
 
-def _radial_grad_circle(size, center, radius, inner_col, outer_col, alpha=200):
-    surf = pygame.Surface(size, pygame.SRCALPHA)
-    steps = max(24, int(radius))
-    for i in range(steps, 0, -1):
-        t = i / steps
-        r = int(inner_col[0]*t + outer_col[0]*(1-t))
-        g = int(inner_col[1]*t + outer_col[1]*(1-t))
-        b = int(inner_col[2]*t + outer_col[2]*(1-t))
-        a = int(alpha*t)
-        pygame.draw.circle(surf, (r,g,b,a), center, int(radius*t))
-    return surf
-
 def _make_planet_overlay(size, rng: random.Random, prob:float = 0.35, *, ref_dim=None):
     if rng.random() > prob:
         return None
